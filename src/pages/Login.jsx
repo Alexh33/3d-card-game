@@ -51,7 +51,7 @@ function Login() {
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
 
-        // Upsert profile so we always have points/username for new users.
+        // Upsert profile so we always have pack juice/username for new users.
         // Using maybeSingle to avoid 406 when no row exists yet.
         const { data: existingProfile } = await supabase
           .from("profiles")
@@ -63,7 +63,7 @@ function Login() {
           const { error: insertError } = await supabase.from("profiles").upsert({
             id: user.id,
             username: username || user.email || "anonymous",
-            points: 1000,
+            points: 1200,
           });
 
           if (insertError) {
