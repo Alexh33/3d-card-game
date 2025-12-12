@@ -1,40 +1,64 @@
-import React from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
-import ThreeScene from "./ThreeScene";
+import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { supabase } from "./supabaseClient";
 
-export default function App() {
+import Home from "./pages/Home";
+import Inventory from "./pages/Inventory";
+import Collection from "./pages/Collection";
+import OpenPack from "./pages/OpenPack";
+import Login from "./pages/Login";
+import Spin from "./pages/Spin";
+import TradeCreate from "./pages/TradeCreate";
+import TradesInbox from "./pages/TradesInbox";
+import SetupProfile from "./pages/SetupProfile";
+import NavBar from "./components/NavBar";
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch current user
+    const fetchUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      setUser(data.user);
+      setLoading(false);
+    };
+
+    fetchUser();
+
+    // Listen for changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => listener?.subscription.unsubscribe();
+  }, []);
+
+  if (loading) return <div className="text-white text-center mt-10">Loading...</div>;
+
+  if (!user) {
+    // Not logged in: Only show login page
+    return <Login />;
+  }
+
   return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        background: "radial-gradient(circle at top, #151520, #050509)",
-        color: "#fff",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ position: "absolute", zIndex: 10, padding: "16px" }}>
-        <h1 style={{ margin: 0, fontSize: "24px" }}>
-          3D Card Pack Demo
-        </h1>
-        <p style={{ margin: "4px 0 0", opacity: 0.7 }}>
-          Drag to look around. Click the pack to open it.
-        </p>
-      </div>
-
-      <Canvas camera={{ position: [0, 2.5, 6], fov: 50 }}>
-        {/* Nice soft lighting */}
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 10, 5]} intensity={1.5} />
-
-        {/* Simple 3D scene with cards + pack */}
-        <ThreeScene />
-
-        {/* Environment + controls */}
-        <Environment preset="city" />
-        <OrbitControls enablePan={false} />
-      </Canvas>
+    <div className="min-h-screen">
+      <NavBar />
+      <main className="page-shell">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/collection" element={<Collection />} />
+          <Route path="/open-pack/:id" element={<OpenPack />} />
+          <Route path="/spin" element={<Spin />} />
+          <Route path="/trades" element={<TradesInbox />} />
+          <Route path="/trades/create" element={<TradeCreate />} />
+          <Route path="/setup-profile" element={<SetupProfile />} />
+        </Routes>
+      </main>
     </div>
   );
 }
+
+export default App;

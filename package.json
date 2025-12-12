@@ -13,19 +13,31 @@
     "@react-spring/three": "^9.7.5",
     "@react-three/drei": "^9.98.0",
     "@react-three/fiber": "^8.15.12",
+    "@supabase/supabase-js": "^2.49.4",
+    "@tsparticles/preset-fireworks": "^3.2.0",
+    "framer-motion": "^12.9.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "three": "^0.160.1"
+    "react-router-dom": "^7.5.2",
+    "react-tsparticles": "^2.12.2",
+    "three": "^0.160.1",
+    "tsparticles": "^3.8.1",
+    "tsparticles-preset-fireworks": "^2.12.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@tailwindcss/postcss": "^4.1.4",
     "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.1",
     "vite": "^7.2.4"
   }
 }

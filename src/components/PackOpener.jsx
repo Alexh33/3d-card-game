@@ -1,37 +1,65 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSpring, animated } from "@react-spring/three";
-import { useCursor } from "@react-three/drei";
+import { useCursor, useGLTF, useTexture } from "@react-three/drei";
+import * as THREE from "three";
 
-export function PackOpener({ position = [0, 0, 0], onOpen }) {
-  const AnimatedMesh = animated.mesh;
+const PACK_MODEL_PATH = "/models/scene.gltf"; // current model in public/models/
+
+export function PackOpener({ position = [0, 0, 0], onOpen, opened = false, disabled = false }) {
   const [hovered, setHovered] = useState(false);
-  const [opened, setOpened] = useState(false);
+  const { scene } = useGLTF(PACK_MODEL_PATH);
+  const { baseColor, normal } = useTexture({
+    baseColor: "/models/body_baseColor.png",
+    normal: "/models/body_normal.png",
+  });
 
-  useCursor(hovered && !opened); // change cursor to pointer on hover
+  useEffect(() => {
+    if (!scene) return;
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (baseColor) {
+          baseColor.wrapS = baseColor.wrapT = THREE.RepeatWrapping;
+          baseColor.repeat.set(1.05, 1.05); // slightly reduced coverage
+          baseColor.offset.set(-0.02, 0.06); // gentle upward nudge
+          baseColor.colorSpace = THREE.SRGBColorSpace;
+          child.material.map = baseColor;
+        }
+        if (normal) {
+          normal.wrapS = normal.wrapT = THREE.RepeatWrapping;
+          normal.repeat.set(1.05, 1.05);
+          normal.offset.set(-0.02, 0.06);
+          child.material.normalMap = normal;
+          child.material.normalScale = new THREE.Vector2(0.22, 0.22);
+        }
+        child.material.needsUpdate = true;
+      }
+    });
+  }, [scene, baseColor, normal]);
+
+  const canInteract = hovered && !opened && !disabled;
+
+  // change cursor to pointer on hover
+  useCursor(canInteract);
 
   // Hover animation (scale + subtle rotation)
   const { scale, rotationY } = useSpring({
-    scale: hovered && !opened ? 1.1 : 1,
-    rotationY: hovered && !opened ? 0.2 : 0,
+    scale: canInteract ? 1.05 : 1,
+    rotationY: canInteract ? 0.08 : 0,
     config: { tension: 200, friction: 15 },
   });
 
-  // Lid animation when opened
-  const { lidRotation } = useSpring({
-    lidRotation: opened ? -Math.PI / 2.8 : 0,
-    config: { tension: 220, friction: 25 },
-  });
-
   const handleClick = () => {
-    if (opened) return;
-    setOpened(true);
-    if (onOpen) onOpen();
+    if (opened || disabled) return;
+    onOpen?.();
   };
+
+  const MODEL_SCALE = 1.6;
 
   return (
     <group position={position}>
-      {/* Main pack body */}
-      <AnimatedMesh
+      <animated.group
         scale={scale}
         rotation-y={rotationY}
         onPointerOver={() => setHovered(true)}
@@ -39,28 +67,22 @@ export function PackOpener({ position = [0, 0, 0], onOpen }) {
         onClick={handleClick}
         castShadow
       >
-        {/* body */}
-        <boxGeometry args={[2, 3, 0.8]} />
-        <meshStandardMaterial
-          color={opened ? "#ffcc00" : "#a020f0"}
-          metalness={0.6}
-          roughness={0.3}
-        />
-      </AnimatedMesh>
-
-      {/* Lid, slightly offset on top */}
-      <AnimatedMesh
-        position={[0, 1.6, 0.2]}
-        rotation-x={lidRotation}
-        castShadow
-      >
-        <boxGeometry args={[2.05, 0.4, 0.9]} />
-        <meshStandardMaterial
-          color={opened ? "#ffe066" : "#c040ff"}
-          metalness={0.6}
-          roughness={0.35}
-        />
-      </AnimatedMesh>
+        {scene ? (
+          <primitive
+            object={scene}
+            scale={[MODEL_SCALE, MODEL_SCALE, MODEL_SCALE]}
+            rotation={[Math.PI / 2 + Math.PI, Math.PI + Math.PI / 2, Math.PI]} // upright, rotate facing 90° clockwise, flip on X and Z
+            position={[0, 0.2, 0.2]} // lower in frame, slight forward nudge
+          />
+        ) : (
+          <mesh>
+            <boxGeometry args={[1.8, 2.8, 0.2]} />
+            <meshStandardMaterial color="#888" />
+          </mesh>
+        )}
+      </animated.group>
     </group>
   );
 }
+
+useGLTF.preload(PACK_MODEL_PATH);
