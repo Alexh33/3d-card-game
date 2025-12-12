@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
 import { getUserOrBypass } from "../utils/authBypass";
+import { acceptTrade, declineTrade, fetchPendingTrades } from "../services/tradeApi";
+import { Link } from "react-router-dom";
 
 function TradesInbox() {
   const [user, setUser] = useState(null);
@@ -13,34 +14,23 @@ function TradesInbox() {
 
       setUser(user);
 
-      const { data, error } = await supabase
-        .from("trades")
-        .select("*")
-        .eq("to_user_id", user.id)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Failed to fetch trades:", error);
-      } else {
-        setIncomingTrades(data);
-      }
+      const data = await fetchPendingTrades();
+      setIncomingTrades(data);
     };
 
     fetchUserAndTrades();
   }, []);
 
   const respondToTrade = async (tradeId, accept) => {
-    const newStatus = accept ? "accepted" : "declined";
-    const { error } = await supabase
-      .from("trades")
-      .update({ status: newStatus })
-      .eq("id", tradeId);
-
-    if (error) {
-      console.error("Failed to update trade:", error);
-    } else {
+    try {
+      if (accept) {
+        await acceptTrade(tradeId);
+      } else {
+        await declineTrade(tradeId);
+      }
       setIncomingTrades(prev => prev.filter(t => t.id !== tradeId));
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -50,6 +40,14 @@ function TradesInbox() {
         <p className="pill mb-2">Trades</p>
         <h1 className="text-3xl font-semibold">Incoming offers</h1>
         <p className="text-white/70 text-sm">Review, accept, or decline offers from other collectors.</p>
+        <div className="mt-3">
+          <Link
+            to="/trades/create"
+            className="inline-flex px-4 py-2 rounded-lg border border-purple-400/40 text-white/90 hover:bg-white/10 transition text-sm"
+          >
+            Start a trade
+          </Link>
+        </div>
       </div>
       {incomingTrades.length === 0 ? (
         <div className="glass p-6 text-white/80">No pending trades right now.</div>
