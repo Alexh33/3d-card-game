@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+import { getUserOrBypass } from "./utils/authBypass";
 
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
@@ -18,21 +19,20 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch current user
-    const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      setUser(data.user);
+    let unsubscribe;
+    (async () => {
+      const { user: fetchedUser, bypass } = await getUserOrBypass();
+      setUser(fetchedUser);
       setLoading(false);
-    };
+      if (bypass) return;
 
-    fetchUser();
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      unsubscribe = listener?.subscription;
+    })();
 
-    // Listen for changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => listener?.subscription.unsubscribe();
+    return () => unsubscribe?.unsubscribe();
   }, []);
 
   if (loading) return <div className="text-white text-center mt-10">Loading...</div>;

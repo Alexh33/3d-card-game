@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 
 function Inventory() {
   const [packs, setPacks] = useState([]);
@@ -7,9 +8,7 @@ function Inventory() {
 
   useEffect(() => {
     const fetchPacks = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { user } = await getUserOrBypass();
 
       if (!user) return;
 

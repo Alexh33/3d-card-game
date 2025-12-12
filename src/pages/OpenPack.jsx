@@ -6,6 +6,7 @@ import { PackResults } from "../components/pack/PackResults";
 import { SealedPack } from "../components/pack/SealedPack";
 import { generateRandomPack } from "../data/packCards";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 
 const toRarityLabel = (rarity = "") => rarity.charAt(0).toUpperCase() + rarity.slice(1);
 
@@ -24,13 +25,10 @@ export default function OpenPack() {
   useEffect(() => {
     const fetchPack = async () => {
       setLoading(true);
-      const {
-        data: { user: authedUser },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { user: authedUser } = await getUserOrBypass();
 
-      if (userError || !authedUser) {
-        console.error("User fetch error:", userError);
+      if (!authedUser) {
+        console.error("User fetch error: no user");
         navigate("/login");
         setLoading(false);
         return;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 
 function SetupProfile() {
   const [username, setUsername] = useState("");
@@ -8,9 +9,9 @@ function SetupProfile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return navigate("/login");
-      setUser(data.user);
+    getUserOrBypass().then(({ user }) => {
+      if (!user) return navigate("/login");
+      setUser(user);
     });
   }, [navigate]);
 

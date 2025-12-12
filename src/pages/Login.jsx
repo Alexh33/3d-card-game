@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { enableBypass } from "../utils/authBypass";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,13 @@ function Login() {
   const handleAuth = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // Admin bypass (local-only)
+    if (email.toLowerCase() === "admin" && password === "1234") {
+      enableBypass();
+      navigate("/");
+      return;
+    }
 
     if (isSignUp) {
       // 🔐 Sign up user

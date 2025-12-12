@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass, disableBypass } from "../utils/authBypass";
 
 function NavBar() {
   const [unopenedCount, setUnopenedCount] = useState(0);
@@ -10,7 +11,7 @@ function NavBar() {
   // Fetch unopened pack count from Supabase
   useEffect(() => {
     const fetchUnopenedPackCount = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user } = await getUserOrBypass();
       if (!user) {
         setUnopenedCount(0);
         return;
@@ -36,17 +37,22 @@ function NavBar() {
 
   // Get logged-in user and subscribe to auth changes
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    let unsub;
+    getUserOrBypass().then(({ user, bypass }) => {
+      setUser(user);
+      if (bypass) return;
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      unsub = listener?.subscription;
     });
 
-    return () => listener?.subscription.unsubscribe();
+    return () => unsub?.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    disableBypass();
     setUser(null);
     navigate("/login");
   };

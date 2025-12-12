@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 
 function TradeCreate() {
   const [searchParams] = useSearchParams();
@@ -15,9 +16,7 @@ function TradeCreate() {
 
   useEffect(() => {
     const fetchUserAndCards = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { user } = await getUserOrBypass();
       if (!user) return navigate("/login");
       setUser(user);
 

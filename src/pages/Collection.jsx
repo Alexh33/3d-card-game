@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { TradingCard } from "../components/pack/TradingCard";
 import { RARITY_CONFIG } from "../data/packCards";
+import { getUserOrBypass } from "../utils/authBypass";
 
 function Collection() {
   const [cards, setCards] = useState([]);
@@ -24,9 +25,7 @@ function Collection() {
 
   useEffect(() => {
     const fetchCards = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { user } = await getUserOrBypass();
 
       if (!user) return;
 

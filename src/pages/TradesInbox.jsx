@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 
 function TradesInbox() {
   const [user, setUser] = useState(null);
@@ -7,9 +8,7 @@ function TradesInbox() {
 
   useEffect(() => {
     const fetchUserAndTrades = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { user } = await getUserOrBypass();
       if (!user) return;
 
       setUser(user);

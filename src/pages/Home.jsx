@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 import { v4 as uuidv4 } from "uuid";
 
 const PACK_COST = 100;
@@ -42,17 +43,15 @@ function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      const { user: authedUser } = await getUserOrBypass();
+      if (!authedUser) return;
 
-      setUser(user);
+      setUser(authedUser);
 
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", authedUser.id)
         .maybeSingle();
 
       const fallbackLast = localStorage.getItem(LOCAL_LAST);
@@ -70,8 +69,8 @@ function Home() {
         setLastClaim(profile.last_daily_claim ?? fallbackLast ?? null);
       } else {
         const { error: insertError } = await supabase.from("profiles").upsert({
-          id: user.id,
-          username: user.email || "anonymous",
+          id: authedUser.id,
+          username: authedUser.email || "anonymous",
           points: 1000,
         });
         if (insertError) {

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CARD_POOL, RARITY_CONFIG } from "../data/packCards";
 import { supabase } from "../supabaseClient";
+import { getUserOrBypass } from "../utils/authBypass";
 
 const CARD_WIDTH = 148; // 128px art + padding/margin
 const TRACK_WIDTH = 760; // matches max-w below
@@ -26,9 +27,7 @@ function Spin() {
 
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { user: authedUser },
-      } = await supabase.auth.getUser();
+      const { user: authedUser } = await getUserOrBypass();
       if (!authedUser) {
         navigate("/login");
         return;
