@@ -153,6 +153,9 @@ function NavBar() {
               </span>
             )}
           </Link>
+          <Link to="/store" className="px-3 py-2 rounded-lg hover:bg-white/10 transition text-white/80 hover:text-white">
+            Store
+          </Link>
           <Link to="/collection" className="px-3 py-2 rounded-lg hover:bg-white/10 transition text-white/80 hover:text-white">
             Collection
           </Link>
