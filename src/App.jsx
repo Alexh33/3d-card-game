@@ -12,6 +12,7 @@ import Spin from "./pages/Spin";
 import TradeCreate from "./pages/TradeCreate";
 import TradesInbox from "./pages/TradesInbox";
 import SetupProfile from "./pages/SetupProfile";
+import Account from "./pages/Account";
 import NavBar from "./components/NavBar";
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
           <Route path="/trades" element={<TradesInbox />} />
           <Route path="/trades/create" element={<TradeCreate />} />
           <Route path="/setup-profile" element={<SetupProfile />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </main>
     </div>

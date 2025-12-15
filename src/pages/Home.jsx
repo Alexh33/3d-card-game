@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { getUserOrBypass } from "../utils/authBypass";
 import { v4 as uuidv4 } from "uuid";
+import { useToast } from "../components/ToastProvider";
 
 const PACK_COST = 100;
 const DAILY_REWARDS = [120, 150, 180, 220, 260, 320, 600]; // pack juice per day, day 7 = mega day
@@ -20,6 +21,7 @@ function dayDiff(from, to) {
 }
 
 function Home() {
+  const toast = useToast();
   const [packJuice, setPackJuice] = useState(0);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,16 @@ function Home() {
     return ((simulatedStreak - 1) % 7) + 1;
   })();
   const nextReward = DAILY_REWARDS[nextCycleDay - 1];
+  const millisToReset = (() => {
+    const now = new Date();
+    const tomorrow = startOfDay(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+    return tomorrow.getTime() - now.getTime();
+  })();
+  const resetCountdown = (() => {
+    const hrs = Math.floor(millisToReset / (1000 * 60 * 60));
+    const mins = Math.floor((millisToReset / (1000 * 60)) % 60);
+    return `${hrs}h ${mins}m`;
+  })();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,13 +116,15 @@ function Home() {
 
     if (profileError || !profile) {
       console.error("Failed to fetch latest profile:", profileError?.message);
-      return alert("Error fetching profile.");
+      toast("Error fetching profile.", "error");
+      return;
     }
 
     const totalCost = amount * PACK_COST;
 
     if ((profile.points ?? 0) < totalCost) {
-      return alert("Not enough pack juice to buy packs.");
+      toast("Not enough pack juice to buy packs.", "error");
+      return;
     }
 
     const updatedPoints = (profile.points ?? 0) - totalCost;
@@ -122,7 +136,8 @@ function Home() {
 
     if (updateError) {
       console.error("Failed to update pack juice:", updateError.message);
-      return alert("Error updating balance.");
+      toast("Error updating balance.", "error");
+      return;
     }
 
     const newPacks = Array.from({ length: amount }).map(() => ({
@@ -137,11 +152,12 @@ function Home() {
 
     if (insertError) {
       console.error("Failed to insert packs:", insertError.message);
-      return alert("Error buying packs.");
+      toast("Error buying packs.", "error");
+      return;
     }
 
     setPackJuice(updatedPoints);
-    alert(`🎉 Bought ${amount} pack${amount > 1 ? "s" : ""}!`);
+    toast(`🎉 Bought ${amount} pack${amount > 1 ? "s" : ""}!`);
   };
 
   const purchaseJuice = async (amount) => {
@@ -155,7 +171,7 @@ function Home() {
 
     if (error || !profile) {
       console.error("Failed to fetch balance:", error?.message);
-      alert("Error fetching balance.");
+      toast("Error fetching balance.", "error");
       setPurchasing(false);
       return;
     }
@@ -168,7 +184,7 @@ function Home() {
 
     if (updateError) {
       console.error("Failed to add pack juice:", updateError.message);
-      alert("Error topping up.");
+      toast("Error topping up.", "error");
       setPurchasing(false);
       return;
     }
@@ -292,6 +308,7 @@ function Home() {
             <h3 className="text-2xl font-semibold">Return daily, reach day 7 for a mega pack.</h3>
             <p className="text-white/70 text-sm mt-1">
               Next reward: +{nextReward} pack juice {nextCycleDay === 7 ? "and a mega pack." : ""}
+              {" · Resets in "}{resetCountdown}
             </p>
           </div>
           <div className="flex items-center gap-3">

@@ -7,12 +7,14 @@ import { SealedPack } from "../components/pack/SealedPack";
 import { generateRandomPack } from "../data/packCards";
 import { supabase } from "../supabaseClient";
 import { getUserOrBypass } from "../utils/authBypass";
+import { useToast } from "../components/ToastProvider";
 
 const toRarityLabel = (rarity = "") => rarity.charAt(0).toUpperCase() + rarity.slice(1);
 
 export default function OpenPack() {
   const { id: packId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [user, setUser] = useState(null);
   const [pack, setPack] = useState(null);
@@ -44,14 +46,14 @@ export default function OpenPack() {
         .single();
 
       if (packError || !packData) {
-        alert("Pack not found or unauthorized.");
+        toast("Pack not found or unauthorized.", "error");
         navigate("/inventory");
         setLoading(false);
         return;
       }
 
       if (packData.opened) {
-        alert("This pack has already been opened.");
+        toast("This pack has already been opened.", "error");
         navigate("/inventory");
         setLoading(false);
         return;
@@ -81,7 +83,7 @@ export default function OpenPack() {
       }
 
       if (latestPack.opened) {
-        alert("This pack has already been opened.");
+        toast("This pack has already been opened.", "error");
         navigate("/inventory");
         return;
       }
@@ -119,7 +121,7 @@ export default function OpenPack() {
       setGameState("opening");
     } catch (error) {
       console.error("Failed to open pack:", error);
-      alert("There was an issue opening your pack. Please try again.");
+      toast("There was an issue opening your pack. Please try again.", "error");
       setGameState("sealed");
     } finally {
       setIsOpening(false);

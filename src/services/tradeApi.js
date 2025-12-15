@@ -1,17 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { getUserOrBypass } from "../utils/authBypass";
 
-const mapTrade = (row) => ({
-  id: row.id,
-  from: row.from_user_id,
-  to: row.to_user_id,
-  offered: row.offered_card_ids || [],
-  requested: row.requested_card_ids || [],
-  status: row.status,
-  expiresAt: row.expires_at,
-  createdAt: row.created_at,
-});
-
 export async function fetchPendingTrades() {
   const { user } = await getUserOrBypass();
   if (!user) return [];
@@ -27,7 +16,7 @@ export async function fetchPendingTrades() {
     console.error("fetchPendingTrades error", error);
     return [];
   }
-  return (data || []).map(mapTrade);
+  return data || [];
 }
 
 export async function createTrade(toUserId, offeredIds, requestedIds) {
@@ -69,5 +58,17 @@ export async function declineTrade(tradeId) {
   if (error) {
     console.error("declineTrade error", error);
     throw new Error(error.message || "Failed to decline trade");
+  }
+}
+
+export async function cancelTrade(tradeId) {
+  const { user, bypass } = await getUserOrBypass();
+  if (!user) throw new Error("Not authenticated");
+  if (bypass) throw new Error("Trade RPC unavailable in bypass mode");
+
+  const { error } = await supabase.rpc("cancel_trade", { p_trade_id: tradeId });
+  if (error) {
+    console.error("cancelTrade error", error);
+    throw new Error(error.message || "Failed to cancel trade");
   }
 }

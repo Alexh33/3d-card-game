@@ -2,22 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { getUserOrBypass } from "../utils/authBypass";
+import { useToast } from "../components/ToastProvider";
+import { generateHandleFromId } from "../utils/handles";
 
 function SetupProfile() {
   const [username, setUsername] = useState("");
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
-    getUserOrBypass().then(({ user }) => {
+    getUserOrBypass().then(async ({ user }) => {
       if (!user) return navigate("/login");
       setUser(user);
+      const fallback = generateHandleFromId(user.id);
+      const { data } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .maybeSingle();
+      setUsername(data?.username || fallback);
     });
   }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim()) return alert("Username cannot be empty.");
+    if (!username.trim()) {
+      toast("Username cannot be empty.", "error");
+      return;
+    }
 
     const { error } = await supabase
       .from("profiles")
@@ -25,7 +38,7 @@ function SetupProfile() {
       .eq("id", user.id);
 
     if (error) {
-      alert("Error saving username: " + error.message);
+      toast("Error saving username: " + error.message, "error");
     } else {
       navigate("/");
     }
@@ -37,7 +50,7 @@ function SetupProfile() {
         <p className="pill mb-2">Profile</p>
         <h1 className="text-3xl font-semibold mb-2">Choose your collector name</h1>
         <p className="text-white/70 text-sm mb-4">
-          This is how other traders will see you across packs, collections, and offers.
+          This is how other traders will see you across packs, collections, and offers. We pre-filled a secure handle for you; feel free to claim something else.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input

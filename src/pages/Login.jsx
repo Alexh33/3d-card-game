@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { enableBypass } from "../utils/authBypass";
+import { useToast } from "../components/ToastProvider";
 
 function Login() {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -34,7 +36,7 @@ function Login() {
         return;
       }
 
-      alert("🎉 Account created! Check your email to confirm.");
+      toast("🎉 Account created! Check your email to confirm.");
       navigate("/login");
 
     } else {
