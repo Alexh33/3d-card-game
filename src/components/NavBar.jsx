@@ -72,6 +72,12 @@ function NavBar() {
         .eq("status", "pending")
         .gt("expires_at", new Date().toISOString());
       setTradeAlerts(count || 0);
+      if ((count || 0) > 0) {
+        setUnreadAlerts(count || 0);
+        setRecentAlerts((prev) =>
+          prev.length ? prev : [{ msg: `${count} pending trade${count > 1 ? "s" : ""}`, ts: new Date().toISOString() }]
+        );
+      }
 
       channel = supabase
         .channel("trade-notifs")

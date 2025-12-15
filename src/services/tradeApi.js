@@ -10,6 +10,7 @@ export async function fetchPendingTrades() {
     .select("*")
     .eq("to_user_id", user.id)
     .eq("status", "pending")
+    .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false });
 
   if (error) {

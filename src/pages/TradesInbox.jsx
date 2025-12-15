@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getUserOrBypass } from "../utils/authBypass";
 import { acceptTrade, declineTrade, fetchPendingTrades, cancelTrade } from "../services/tradeApi";
 import { Link } from "react-router-dom";
@@ -20,39 +20,43 @@ function TradesInbox() {
   const [processing, setProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("incoming");
 
-  useEffect(() => {
-    const fetchUserAndTrades = async () => {
-      const { user } = await getUserOrBypass();
-      if (!user) return;
+  const fetchUserAndTrades = useCallback(async () => {
+    const { user } = await getUserOrBypass();
+    if (!user) return;
 
-      setUser(user);
+    setUser(user);
 
-      // expire stale trades so we don't show dead pending rows
-      await supabase.rpc("expire_stale_trades").catch(() => {});
+    try {
+      await supabase.rpc("expire_stale_trades");
+    } catch (_) {
+      // ignore
+    }
 
-      const incoming = await fetchPendingTrades();
-      setIncomingTrades(incoming);
+    const incoming = await fetchPendingTrades();
+    setIncomingTrades(incoming || []);
 
-      const { data: sent, error: sentErr } = await supabase
-        .from("trades")
-        .select("*")
-        .eq("from_user_id", user.id)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
-      if (!sentErr) setOutgoingTrades(sent || []);
+    const { data: sent, error: sentErr } = await supabase
+      .from("trades")
+      .select("*")
+      .eq("from_user_id", user.id)
+      .eq("status", "pending")
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false });
+    if (!sentErr) setOutgoingTrades(sent || []);
 
-      const { data: history } = await supabase
-        .from("trades")
-        .select("*")
-        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-        .neq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      setHistoryTrades(history || []);
-    };
-
-    fetchUserAndTrades();
+    const { data: history } = await supabase
+      .from("trades")
+      .select("*")
+      .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+      .neq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setHistoryTrades(history || []);
   }, []);
+
+  useEffect(() => {
+    fetchUserAndTrades();
+  }, [fetchUserAndTrades]);
 
   // Live updates for incoming trades
   useEffect(() => {
@@ -275,10 +279,10 @@ function TradesInbox() {
 
       {activeTab === "incoming" && (
         <>
-          {incomingTrades.filter((t) => !isExpired(t)).length === 0 ? (
+          {incomingTrades.length === 0 ? (
             <div className="glass p-6 text-white/80">No pending trades right now.</div>
           ) : (
-            incomingTrades.filter((t) => !isExpired(t)).map((trade) => (
+            incomingTrades.map((trade) => (
               <div key={trade.id} className="glass p-5 border border-purple-400/30">
                 <p className="text-xs text-white/50 mb-1">Trade ID: {trade.id}</p>
                 <p className="text-sm text-white/70">From</p>
@@ -294,30 +298,35 @@ function TradesInbox() {
                     {renderCardGrid(trade.requested_card_ids)}
                   </div>
                 </div>
-            <div className="mt-4 flex gap-3">
-              {isExpired(trade) ? (
-                <span className="text-sm text-white/60">Expired</span>
-              ) : (
-                <>
+                <div className="mt-4 flex gap-3 items-center">
+                  {isExpired(trade) ? (
+                    <span className="text-sm text-white/60">Expired</span>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setConfirmTrade(trade)}
+                        className="cta px-4 py-3"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => respondToTrade(trade, false)}
+                        className="px-4 py-3 rounded-xl border border-white/15 text-white/80 hover:bg-white/10 transition"
+                      >
+                        Decline
+                      </button>
+                    </>
+                  )}
                   <button
-                    onClick={() => setConfirmTrade(trade)}
-                    className="cta px-4 py-3"
-                    disabled={isExpired(trade)}
+                    onClick={() => fetchUserAndTrades()}
+                    className="ml-auto px-3 py-2 rounded-lg border border-white/15 text-white/70 hover:bg-white/10 text-xs"
                   >
-                    Accept
+                    Refresh
                   </button>
-                  <button
-                    onClick={() => respondToTrade(trade, false)}
-                    className="px-4 py-3 rounded-xl border border-white/15 text-white/80 hover:bg-white/10 transition"
-                  >
-                    Decline
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        ))
-      )}
+                </div>
+              </div>
+            ))
+          )}
         </>
       )}
 
