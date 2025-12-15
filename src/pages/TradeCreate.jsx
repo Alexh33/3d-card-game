@@ -296,7 +296,7 @@ function TradeCreate() {
 
       {showReview && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-          <div className="glass p-6 border border-yellow-300/50 w-full max-w-3xl">
+          <div className="glass p-6 border border-yellow-300/50 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-2">Review trade</h2>
             <p className="text-white/70 text-sm">Confirm the cards you are offering and requesting.</p>
             <div className="grid md:grid-cols-2 gap-4 mt-4">
@@ -414,7 +414,7 @@ function TradeCreate() {
               onChange={(e) => setYourFilters((f) => ({ ...f, search: e.target.value }))}
             />
           </div>
-          <div className="card-grid">
+          <div className="card-grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
             {applyFilters(yourCards, yourFilters).map((card) => {
               const id = normalizeId(card);
               const selected = id ? selectedYours.includes(id) : false;
@@ -487,7 +487,7 @@ function TradeCreate() {
               {applyFilters(theirCards, theirFilters).length === 0 ? (
                 <div className="text-white/70 text-sm">No cards to show yet.</div>
               ) : (
-                <div className="card-grid">
+                <div className="card-grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1">
                   {applyFilters(theirCards, theirFilters).map((card) => {
                     const id = normalizeId(card);
                     const selected = id ? selectedTheirs.includes(id) : false;

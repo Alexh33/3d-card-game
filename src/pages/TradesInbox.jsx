@@ -279,11 +279,11 @@ function TradesInbox() {
 
       {activeTab === "incoming" && (
         <>
-          {incomingTrades.length === 0 ? (
-            <div className="glass p-6 text-white/80">No pending trades right now.</div>
-          ) : (
-            incomingTrades.map((trade) => (
-              <div key={trade.id} className="glass p-5 border border-purple-400/30">
+      {incomingTrades.length === 0 ? (
+        <div className="glass p-6 text-white/80">No pending trades right now.</div>
+      ) : (
+        incomingTrades.map((trade) => (
+          <div key={trade.id} className="glass p-5 border border-purple-400/30">
                 <p className="text-xs text-white/50 mb-1">Trade ID: {trade.id}</p>
                 <p className="text-sm text-white/70">From</p>
                 <p className="font-semibold">{profileLookup[trade.from_user_id] || resolveHandle(null, trade.from_user_id)}</p>
@@ -332,11 +332,11 @@ function TradesInbox() {
 
       {activeTab === "outgoing" && (
         <>
-          {outgoingTrades.length === 0 ? (
-            <div className="glass p-6 text-white/70">No outgoing trades.</div>
-          ) : (
-            outgoingTrades.map((trade) => (
-              <div key={trade.id} className="glass p-5 border border-white/10">
+      {outgoingTrades.length === 0 ? (
+        <div className="glass p-6 text-white/70">No outgoing trades.</div>
+      ) : (
+        outgoingTrades.map((trade) => (
+          <div key={trade.id} className="glass p-5 border border-white/10">
                 <p className="text-xs text-white/50 mb-1">Trade ID: {trade.id}</p>
                 <p className="text-sm text-white/70">To</p>
                 <p className="font-semibold">{profileLookup[trade.to_user_id] || resolveHandle(null, trade.to_user_id)}</p>
@@ -376,11 +376,11 @@ function TradesInbox() {
 
       {activeTab === "history" && (
         <>
-          {historyTrades.length === 0 ? (
-            <div className="glass p-6 text-white/70">No recent trade activity.</div>
-          ) : (
-            historyTrades.map((trade) => (
-              <div key={trade.id} className="glass p-5 border border-white/10">
+      {historyTrades.length === 0 ? (
+        <div className="glass p-6 text-white/70">No recent trade activity.</div>
+      ) : (
+        historyTrades.map((trade) => (
+          <div key={trade.id} className="glass p-5 border border-white/10">
                 <div className="flex items-center justify-between text-sm text-white/70">
                   <div>
                     <p className="text-xs text-white/50">Trade ID: {trade.id}</p>

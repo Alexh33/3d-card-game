@@ -10,6 +10,7 @@ function NavBar() {
   const [unopenedCount, setUnopenedCount] = useState(0);
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [tradeAlerts, setTradeAlerts] = useState(0);
   const [recentAlerts, setRecentAlerts] = useState([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -136,7 +137,7 @@ function NavBar() {
 
   return (
     <header className="backdrop-blur-lg bg-black/50 border-b border-white/10 sticky top-0 z-40">
-      <div className="page-shell flex items-center gap-6 py-4">
+      <div className="page-shell flex items-center gap-3 py-4">
         <Link to="/" className="flex items-center gap-3 text-white font-semibold text-lg tracking-tight">
           <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-indigo-500 shadow-lg shadow-purple-800/40 flex items-center justify-center text-sm">
             C
@@ -147,7 +148,7 @@ function NavBar() {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-3 text-sm font-medium ml-2 flex-wrap">
+        <nav className="hidden md:flex items-center gap-3 text-sm font-medium ml-2 flex-wrap">
           <Link to="/" className="px-3 py-2 rounded-lg hover:bg-white/10 transition text-white/80 hover:text-white">
             Home
           </Link>
@@ -251,8 +252,90 @@ function NavBar() {
               </Link>
             )}
           </div>
+
+          <button
+            className="md:hidden h-10 w-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white hover:bg-white/15 transition"
+            onClick={() => {
+              setMobileOpen((o) => !o);
+              setAlertsOpen(false);
+              setMenuOpen(false);
+            }}
+          >
+            ☰
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 p-5">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-white font-semibold">Menu</div>
+            <button
+              className="h-10 w-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white"
+              onClick={() => setMobileOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex flex-col gap-3 text-lg">
+            <Link to="/" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">Home</Link>
+            <Link to="/inventory" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">Inventory</Link>
+            <Link to="/collection" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">Collection</Link>
+            <Link to="/spin" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">Daily Spin</Link>
+            <Link to="/trades" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">
+              Trades {tradeAlerts > 0 && <span className="text-amber-300 text-sm">({tradeAlerts})</span>}
+            </Link>
+            <Link to="/store" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">Store</Link>
+            <Link to="/account" onClick={() => setMobileOpen(false)} className="text-white/90 hover:text-white">Account</Link>
+            <div className="flex items-center gap-3 mt-2">
+              <button
+                onClick={() => {
+                  setAlertsOpen((o) => !o);
+                  setUnreadAlerts(0);
+                }}
+                className="h-10 w-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white"
+              >
+                🔔
+                {unreadAlerts > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-bold">
+                    {unreadAlerts}
+                  </span>
+                )}
+              </button>
+              {user ? (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileOpen(false);
+                  }}
+                  className="px-3 py-2 rounded-lg border border-white/20 text-white/80 hover:bg-white/10 transition"
+                >
+                  Log Out
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2 rounded-lg bg-white text-black font-semibold"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+            {alertsOpen && (
+              <div className="mt-3 glass p-3 border border-white/10">
+                <p className="text-xs text-white/60 mb-2">Recent trade alerts</p>
+                {recentAlerts.length === 0 && <p className="text-white/60 text-sm">No recent alerts</p>}
+                {recentAlerts.map((a, idx) => (
+                  <div key={idx} className="text-sm text-white/80 border-t border-white/10 first:border-t-0 py-1">
+                    {a.msg}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

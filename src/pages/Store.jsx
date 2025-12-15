@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import { getUserOrBypass } from "../utils/authBypass";
 import { useToast } from "../components/ToastProvider";
 
-const PLACEHOLDER = "https://placehold.co/300x180/1e1b3a/ffffff?text=Preview";
+const PLACEHOLDER = "https://placehold.co/600x340/1e1b3a/ffffff?text=Preview";
 
 const BUNDLES = [
   { id: "starter", title: "Starter", juice: 500, price: "$4.99", bonus: "Jumpstart your pulls", image: PLACEHOLDER },
@@ -131,7 +131,7 @@ function Store() {
 
   return (
     <div className="text-white flex flex-col gap-6">
-      <div className="glass p-6">
+      <div className="glass p-6 sticky top-[72px] z-10">
         <p className="pill mb-2">Store</p>
         <h1 className="text-3xl font-semibold">Pack Juice Bundles</h1>
         <p className="text-white/70 text-sm max-w-2xl">
@@ -142,10 +142,10 @@ function Store() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {BUNDLES.map((bundle) => (
           <div key={bundle.id} className="glass p-5 border border-white/10 flex flex-col gap-3">
-            <img src={bundle.image} alt={bundle.title} className="w-full h-32 object-cover rounded-lg" />
+            <img src={bundle.image} alt={bundle.title} className="w-full h-40 object-cover rounded-lg" loading="lazy" />
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold">{bundle.title}</h3>
               <span className="text-sm text-white/70">{bundle.price}</span>
@@ -163,15 +163,15 @@ function Store() {
         ))}
       </div>
 
-      <div className="glass p-6 border border-white/10">
+      <div className="glass p-6 border border-white/10 sticky top-[156px] z-10">
         <p className="pill mb-2">Spend juice</p>
         <h2 className="text-2xl font-semibold">Buy packs with juice</h2>
         <p className="text-white/70 text-sm">Use your balance to grab packs instantly.</p>
       </div>
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {PACKS.map((pack) => (
           <div key={pack.id} className="glass p-5 border border-white/10 flex flex-col gap-3">
-            <img src={pack.image} alt={pack.title} className="w-full h-32 object-cover rounded-lg" />
+            <img src={pack.image} alt={pack.title} className="w-full h-40 object-cover rounded-lg" loading="lazy" />
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold">{pack.title}</h3>
               <span className="text-sm text-white/70">{pack.cost} juice</span>
